@@ -18,11 +18,11 @@ export function monthlyTotals(rows) {
     const totals = byCity.get(row.city);
     totals.set(key, (totals.get(key) ?? 0) + Number(row.rides));
   }
-  const months = [...keys].sort();
+  const monthKeys = [...keys].sort();
   return {
-    months: months.map((key) => ({ key, label: monthLabel(key) })),
+    months: monthKeys.map((key) => ({ key, label: monthLabel(key) })),
     series: [...byCity.keys()]
       .sort((a, b) => a.localeCompare(b))
-      .map((city) => ({ city, totals: months.map((key) => byCity.get(city).get(key) ?? null) })),
+      .map((city) => ({ city, totals: monthKeys.map((key) => byCity.get(city).get(key) ?? null) })),
   };
 }

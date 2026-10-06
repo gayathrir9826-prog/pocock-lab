@@ -56,7 +56,7 @@
         tr.appendChild(th);
         for (const total of totals) {
           const td = document.createElement("td");
-          td.textContent = total === null ? "" : total.toLocaleString();
+          td.textContent = total === null ? "" : total.toLocaleString("en-US");
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
