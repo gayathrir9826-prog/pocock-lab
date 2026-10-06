@@ -14,6 +14,7 @@
   <main>
     <p id="status" aria-live="polite">Loading data&hellip;</p>
     <section id="monthly" hidden>
+      <ul id="monthly-legend" class="legend" aria-label="Legend"></ul>
       <svg id="monthly-chart" class="line-chart" role="img"
            aria-label="Line chart of Monthly totals for each city by month"></svg>
       <table id="monthly-table">
@@ -63,15 +64,35 @@
       }
       const middleY = (plot.top + plot.bottom) / 2;
       chart.append(svg("text", { class: "axis-title", transform: `translate(14 ${middleY}) rotate(-90)` }, "Rides"));
-      for (const { points, segments } of lines) {
+      // Each series index gets a fixed color (CSS .series-N) and marker shape, so Cities differ without color.
+      // Three styles, kept in step with .series-0 to .series-2 in style.css; a fourth City reuses the first.
+      const SHAPES = ["circle", "square", "triangle"];
+      const marker = (shape, x, y) => {
+        if (shape === "circle") return svg("circle", { class: "marker", cx: x, cy: y, r: 4.5 });
+        if (shape === "square") return svg("rect", { class: "marker", x: x - 4, y: y - 4, width: 8, height: 8 });
+        return svg("polygon", { class: "marker", points: `${x},${y - 5.5} ${x + 5.5},${y + 4} ${x - 5.5},${y + 4}` });
+      };
+      const legend = document.getElementById("monthly-legend");
+      for (const [i, { city, points, segments }] of lines.entries()) {
+        const styleIndex = i % SHAPES.length;
+        const seriesClass = `series series-${styleIndex}`;
+        const shape = SHAPES[styleIndex];
+        const group = svg("g", { class: seriesClass });
         for (const segment of segments) {
-          chart.append(svg("polyline", { class: "line", points: segment.map((p) => `${p.x},${p.y}`).join(" ") }));
+          group.append(svg("polyline", { class: "line", points: segment.map((p) => `${p.x},${p.y}`).join(" ") }));
         }
         for (const { x, y, label } of points) {
-          const marker = svg("circle", { class: "marker", cx: x, cy: y, r: 4 });
-          marker.append(svg("title", {}, label));
-          chart.append(marker);
+          const point = marker(shape, x, y);
+          point.append(svg("title", {}, label));
+          group.append(point);
         }
+        chart.append(group);
+
+        const swatch = svg("svg", { class: seriesClass, viewBox: "0 0 28 12", width: 28, height: 12, "aria-hidden": "true" });
+        swatch.append(svg("line", { class: "line", x1: 0, x2: 28, y1: 6, y2: 6 }), marker(shape, 14, 6));
+        const entry = document.createElement("li");
+        entry.append(swatch, city);
+        legend.append(entry);
       }
 
       const headRow = document.querySelector("#monthly-table thead tr");
