@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monthly totals by city</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header>
+    <h1>Monthly totals by city</h1>
+    <nav><a href="./index.html">Home</a><a href="./monthly.html" aria-current="page">Monthly totals</a></nav>
+  </header>
+  <main>
+    <p id="status" aria-live="polite">Loading data&hellip;</p>
+    <section id="monthly" hidden>
+      <table id="monthly-table">
+        <thead><tr><th>City</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+  <script type="module">
+    import { parseCsv } from "./src/csv.js";
+    import { monthlyTotals } from "./src/monthly.js";
+
+    const status = document.getElementById("status");
+    let rows;
+    try {
+      const response = await fetch("./data/rides.csv");
+      if (!response.ok) throw new Error(response.statusText);
+      rows = parseCsv(await response.text());
+    } catch {
+      status.textContent = "Could not load ride data";
+    }
+
+    if (rows && rows.length === 0) {
+      status.textContent = "No ride data";
+    } else if (rows) {
+      const { months, series } = monthlyTotals(rows);
+      status.hidden = true;
+
+      const headRow = document.querySelector("#monthly-table thead tr");
+      for (const { label } of months) {
+        const th = document.createElement("th");
+        th.textContent = label;
+        headRow.appendChild(th);
+      }
+
+      const tbody = document.querySelector("#monthly-table tbody");
+      for (const { city, totals } of series) {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.scope = "row";
+        th.textContent = city;
+        tr.appendChild(th);
+        for (const total of totals) {
+          const td = document.createElement("td");
+          td.textContent = total === null ? "" : total.toLocaleString("en-US");
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      document.getElementById("monthly").hidden = false;
+    }
+  </script>
+</body>
+</html>
