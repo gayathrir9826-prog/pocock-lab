@@ -14,6 +14,8 @@
   <main>
     <p id="status" aria-live="polite">Loading data&hellip;</p>
     <section id="monthly" hidden>
+      <svg id="monthly-chart" class="line-chart" role="img"
+           aria-label="Line chart of Monthly totals for each city by month"></svg>
       <table id="monthly-table">
         <thead><tr><th>City</th></tr></thead>
         <tbody></tbody>
@@ -22,7 +24,7 @@
   </main>
   <script type="module">
     import { parseCsv } from "./src/csv.js";
-    import { monthlyTotals } from "./src/monthly.js";
+    import { monthlyTotals, lineChartLayout, CHART_SIZE } from "./src/monthly.js";
 
     const status = document.getElementById("status");
     let rows;
@@ -37,8 +39,40 @@
     if (rows && rows.length === 0) {
       status.textContent = "No ride data";
     } else if (rows) {
-      const { months, series } = monthlyTotals(rows);
+      const monthly = monthlyTotals(rows);
+      const { months, series } = monthly;
       status.hidden = true;
+
+      const chart = document.getElementById("monthly-chart");
+      chart.setAttribute("viewBox", `0 0 ${CHART_SIZE.width} ${CHART_SIZE.height}`);
+      const { plot, yTicks, xTicks, series: lines } = lineChartLayout(monthly, CHART_SIZE);
+      const svg = (name, attrs, text) => {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+        if (text !== undefined) el.textContent = text;
+        return el;
+      };
+      for (const { value, y } of yTicks) {
+        chart.append(
+          svg("line", { class: "grid", x1: plot.left, x2: plot.right, y1: y, y2: y }),
+          svg("text", { class: "y-tick", x: plot.left - 8, y }, value.toLocaleString("en-US")),
+        );
+      }
+      for (const { label, x } of xTicks) {
+        chart.append(svg("text", { class: "x-tick", x, y: plot.bottom + 22 }, label));
+      }
+      const middleY = (plot.top + plot.bottom) / 2;
+      chart.append(svg("text", { class: "axis-title", transform: `translate(14 ${middleY}) rotate(-90)` }, "Rides"));
+      for (const { points, segments } of lines) {
+        for (const segment of segments) {
+          chart.append(svg("polyline", { class: "line", points: segment.map((p) => `${p.x},${p.y}`).join(" ") }));
+        }
+        for (const { x, y, label } of points) {
+          const marker = svg("circle", { class: "marker", cx: x, cy: y, r: 4 });
+          marker.append(svg("title", {}, label));
+          chart.append(marker);
+        }
+      }
 
       const headRow = document.querySelector("#monthly-table thead tr");
       for (const { label } of months) {
