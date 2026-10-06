@@ -26,3 +26,59 @@ export function monthlyTotals(rows) {
       .map((city) => ({ city, totals: monthKeys.map((key) => byCity.get(city).get(key) ?? null) })),
   };
 }
+
+// Room around the plot for axis labels.
+const MARGIN = { top: 20, right: 40, bottom: 40, left: 60 };
+
+// Smallest step of 1, 2 or 5 x 10^n that covers max in at most 5 intervals.
+function tickStep(max) {
+  if (max <= 0) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(max / 5));
+  return [1, 2, 5, 10].map((m) => m * magnitude).find((step) => max / step <= 5);
+}
+
+// SVG geometry for monthlyTotals(rows) drawn in a width x height box.
+export function lineChartLayout(monthly, { width, height }) {
+  const plot = {
+    left: MARGIN.left,
+    top: MARGIN.top,
+    right: width - MARGIN.right,
+    bottom: height - MARGIN.bottom,
+  };
+  const known = monthly.series.flatMap((s) => s.totals).filter((t) => t !== null);
+  const step = tickStep(Math.max(0, ...known));
+  const intervals = Math.max(1, Math.ceil(Math.max(0, ...known) / step));
+  const top = step * intervals;
+  const y = (value) => plot.bottom - (value / top) * (plot.bottom - plot.top);
+
+  const yTicks = [];
+  for (let i = 0; i <= intervals; i++) yTicks.push({ value: i * step, y: y(i * step) });
+
+  // Months run edge to edge; a lone Month sits in the middle.
+  const count = monthly.months.length;
+  const x = (i) =>
+    count === 1 ? (plot.left + plot.right) / 2 : plot.left + (i * (plot.right - plot.left)) / (count - 1);
+  const xTicks = monthly.months.map(({ label }, i) => ({ label, x: x(i) }));
+
+  // A Missing month has no point and ends the current segment.
+  const series = monthly.series.map(({ city, totals }) => {
+    const points = [];
+    const segments = [];
+    let segment = [];
+    totals.forEach((value, i) => {
+      if (value === null) {
+        if (segment.length > 0) segments.push(segment);
+        segment = [];
+        return;
+      }
+      const label = `${city}, ${monthly.months[i].label}: ${value.toLocaleString("en-US")}`;
+      const point = { x: x(i), y: y(value), value, label };
+      points.push(point);
+      segment.push(point);
+    });
+    if (segment.length > 0) segments.push(segment);
+    return { city, points, segments };
+  });
+
+  return { plot, yTicks, xTicks, series };
+}
