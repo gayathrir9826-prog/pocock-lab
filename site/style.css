@@ -12,5 +12,11 @@ th { background: #f2f2f2; }
 .line-chart .y-tick { text-anchor: end; dominant-baseline: middle; fill: #555555; }
 .line-chart .x-tick { text-anchor: middle; fill: #555555; }
 .line-chart .axis-title { text-anchor: middle; fill: #555555; }
-.line-chart .line { fill: none; stroke: #028090; stroke-width: 2; }
-.line-chart .marker { fill: #028090; stroke: #ffffff; stroke-width: 1.5; }
+/* Series colors differ in lightness too, so they stay apart in greyscale; shapes do the rest. */
+.series-0 { --series-color: #1f3a5f; }
+.series-1 { --series-color: #028090; }
+.series-2 { --series-color: #e07a1f; }
+.series .line { fill: none; stroke: var(--series-color); stroke-width: 2; }
+.series .marker { fill: var(--series-color); stroke: #ffffff; stroke-width: 1.5; }
+.legend { list-style: none; padding: 0; margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; }
+.legend li { display: flex; align-items: center; gap: 0.4rem; }
