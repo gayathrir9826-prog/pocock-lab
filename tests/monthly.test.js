@@ -72,7 +72,9 @@ test("lineChartLayout puts y ticks from 0 at the plot bottom to a rounded maximu
   assert.deepEqual(yTicks.map((t) => t.value), [0, 2000, 4000, 6000]);
   assert.equal(yTicks[0].y, plot.bottom);
   assert.equal(yTicks[3].y, plot.top);
-  assert.equal(yTicks[1].y - yTicks[2].y, yTicks[2].y - yTicks[3].y);
+  const gaps = yTicks.slice(1).map((t, i) => yTicks[i].y - t.y);
+  assert.ok(gaps[0] > 0);
+  assert.deepEqual(gaps, [gaps[0], gaps[0], gaps[0]]);
 });
 
 test("lineChartLayout spaces Months evenly across the plot and places each Monthly total by value", () => {

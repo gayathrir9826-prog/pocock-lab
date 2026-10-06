@@ -14,7 +14,7 @@
   <main>
     <p id="status" aria-live="polite">Loading data&hellip;</p>
     <section id="monthly" hidden>
-      <svg id="monthly-chart" class="line-chart" viewBox="0 0 600 300" role="img"
+      <svg id="monthly-chart" class="line-chart" role="img"
            aria-label="Line chart of Monthly totals for each city by month"></svg>
       <table id="monthly-table">
         <thead><tr><th>City</th></tr></thead>
@@ -24,7 +24,7 @@
   </main>
   <script type="module">
     import { parseCsv } from "./src/csv.js";
-    import { monthlyTotals, lineChartLayout } from "./src/monthly.js";
+    import { monthlyTotals, lineChartLayout, CHART_SIZE } from "./src/monthly.js";
 
     const status = document.getElementById("status");
     let rows;
@@ -44,7 +44,8 @@
       status.hidden = true;
 
       const chart = document.getElementById("monthly-chart");
-      const { plot, yTicks, xTicks, series: lines } = lineChartLayout(monthly, { width: 600, height: 300 });
+      chart.setAttribute("viewBox", `0 0 ${CHART_SIZE.width} ${CHART_SIZE.height}`);
+      const { plot, yTicks, xTicks, series: lines } = lineChartLayout(monthly, CHART_SIZE);
       const svg = (name, attrs, text) => {
         const el = document.createElementNS("http://www.w3.org/2000/svg", name);
         for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);

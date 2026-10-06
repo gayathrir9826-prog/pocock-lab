@@ -27,6 +27,9 @@ export function monthlyTotals(rows) {
   };
 }
 
+// The page's SVG viewBox; pass it to lineChartLayout so both agree.
+export const CHART_SIZE = { width: 600, height: 300 };
+
 // Room around the plot for axis labels.
 const MARGIN = { top: 20, right: 40, bottom: 40, left: 60 };
 
@@ -45,11 +48,12 @@ export function lineChartLayout(monthly, { width, height }) {
     right: width - MARGIN.right,
     bottom: height - MARGIN.bottom,
   };
-  const known = monthly.series.flatMap((s) => s.totals).filter((t) => t !== null);
-  const step = tickStep(Math.max(0, ...known));
-  const intervals = Math.max(1, Math.ceil(Math.max(0, ...known) / step));
-  const top = step * intervals;
-  const y = (value) => plot.bottom - (value / top) * (plot.bottom - plot.top);
+  const knownTotals = monthly.series.flatMap((s) => s.totals).filter((t) => t !== null);
+  const largest = Math.max(0, ...knownTotals);
+  const step = tickStep(largest);
+  const intervals = Math.max(1, Math.ceil(largest / step));
+  const axisMax = step * intervals;
+  const y = (value) => plot.bottom - (value / axisMax) * (plot.bottom - plot.top);
 
   const yTicks = [];
   for (let i = 0; i <= intervals; i++) yTicks.push({ value: i * step, y: y(i * step) });
