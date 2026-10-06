@@ -7,3 +7,10 @@ th, td { border: 1px solid #d0d0d0; padding: 0.3rem 0.8rem; text-align: left; }
 th { background: #f2f2f2; }
 .bars { display: flex; flex-direction: column; gap: 0.4rem; margin: 1rem 0; }
 .bar { background: #028090; color: #ffffff; padding: 0.3rem 0.6rem; border-radius: 3px; white-space: nowrap; min-width: 6rem; }
+.line-chart { width: 100%; height: auto; display: block; margin: 1rem 0; font-size: 12px; }
+.line-chart .grid { stroke: #e4e4e4; }
+.line-chart .y-tick { text-anchor: end; dominant-baseline: middle; fill: #555555; }
+.line-chart .x-tick { text-anchor: middle; fill: #555555; }
+.line-chart .axis-title { text-anchor: middle; fill: #555555; }
+.line-chart .line { fill: none; stroke: #028090; stroke-width: 2; }
+.line-chart .marker { fill: #028090; stroke: #ffffff; stroke-width: 1.5; }
